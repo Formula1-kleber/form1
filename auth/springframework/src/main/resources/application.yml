@@ -1,0 +1,18 @@
+server:
+  port: ${PORT:8081}
+app:
+  jwt:
+    secret: ${JWT_SECRET:f1-auction-super-secret-key-change-me-0123456789}
+    ttl-minutes: 480
+  cookie:
+    name: f1_token                      # precisa ser o mesmo nome configurado no gateway
+    secure: ${COOKIE_SECURE:false}      # em produção (HTTPS) use COOKIE_SECURE=true
+    same-site: ${COOKIE_SAME_SITE:Lax}
+spring:
+  application:
+    name: auth-service
+  mongodb:
+    uri: ${MONGO_URI:mongodb://localhost:27017/form1_auth}
+  data:
+    mongodb:
+      auto-index-creation: true

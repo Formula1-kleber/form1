@@ -1,0 +1,8 @@
+Fotos (ou GIFs) dos pilotos: coloque os arquivos aqui com estes nomes exatos.
+Se um arquivo não existir, o card mostra as iniciais do piloto no lugar.
+
+  senna.jpg   schumacher.jpg   hamilton.jpg
+  verstappen.jpg   leclerc.jpg   fangio.jpg
+
+Aceita .jpg; para GIF/PNG/WEBP troque a extensão no campo "img" em src/pages/Home.tsx.
+Use imagens que você tenha direito de usar (ex.: Wikimedia Commons com licença livre, citando a fonte).

@@ -1,0 +1,9 @@
+server:
+  port: ${PORT:8084}
+spring:
+  config:
+    import: optional:file:${user.home}/f1-auction.properties
+  application:
+    name: notification-service
+  rabbitmq:
+    addresses: ${RABBITMQ_URL:amqp://guest:guest@localhost:5672}

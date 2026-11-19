@@ -1,0 +1,14 @@
+server:
+  port: ${PORT:8082}
+app:
+  auction:
+    reserve-ratio: 0.7      # lance vencedor precisa chegar a 70% do valor de referência
+spring:
+  config:
+    import: optional:file:${user.home}/f1-auction.properties
+  application:
+    name: auction-service
+  mongodb:
+    uri: ${MONGO_URI:mongodb://localhost:27017/form1_auction}
+  rabbitmq:
+    addresses: ${RABBITMQ_URL:amqp://guest:guest@localhost:5672}

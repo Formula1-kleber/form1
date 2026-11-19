@@ -1,0 +1,38 @@
+server:
+  port: ${PORT:8080}
+app:
+  jwt:
+    secret: ${JWT_SECRET:f1-auction-super-secret-key-change-me-0123456789}
+  cors:
+    origins: ${CORS_ORIGINS:}
+  cookie:
+    name: f1_token   # cookie HttpOnly gerado pelo auth-service no login
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            pool:
+              max-idle-time: 5s   # descarta conexões ociosas antes de o Tomcat fechá-las
+          routes:
+            - id: auth
+              uri: ${AUTH_URL:http://localhost:8081}
+              predicates: [ "Path=/api/auth/**" ]
+            - id: auctions            # API de leilão - lado do participante (lances, resultados)
+              uri: ${AUCTION_URL:http://localhost:8082}
+              predicates: [ "Path=/api/auctions/**" ]
+            - id: auctions-admin      # API de leilão - lado do administrador (comandos)
+              uri: ${AUCTION_URL:http://localhost:8082}
+              predicates: [ "Path=/api/admin/auctions/**" ]
+            - id: reports
+              uri: ${REPORT_URL:http://localhost:8083}
+              predicates: [ "Path=/api/reports/**" ]
+            - id: websocket
+              uri: ${NOTIFICATION_URL:ws://localhost:8084}
+              predicates: [ "Path=/ws/**" ]
+logging:
+  level:
+    reactor.netty.transport.ServerTransport: "OFF"   # esconde "conexão anulada" quando o navegador fecha o WebSocket (inofensivo)

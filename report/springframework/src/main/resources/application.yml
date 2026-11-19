@@ -1,0 +1,8 @@
+server:
+  port: ${PORT:8083}
+app:
+  auction:
+    url: ${AUCTION_URL:http://localhost:8082}   # API de leilão: de onde o relatório lê os leilões encerrados
+spring:
+  application:
+    name: report-service
