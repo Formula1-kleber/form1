@@ -1,10 +1,15 @@
 export type Role = "USER" | "ADMIN";
 
-/** Sessão do usuário logado. O token JWT fica só no cookie HttpOnly e nunca chega ao JavaScript. */
+/** Sessão do usuário logado (sem o token). */
 export interface Session {
   userId: string;
   username: string;
   role: Role;
+}
+
+/** Resposta do login e do cadastro: a sessão mais o token JWT, enviado depois no header Authorization. */
+export interface LoginResponse extends Session {
+  token: string;
 }
 
 export interface Lot {

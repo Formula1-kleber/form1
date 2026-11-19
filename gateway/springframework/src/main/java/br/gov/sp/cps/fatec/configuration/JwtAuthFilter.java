@@ -20,7 +20,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Único ponto de autenticação do sistema: lê o JWT do cookie HttpOnly, valida a assinatura e repassa
+ * Único ponto de autenticação do sistema: lê o JWT do header Authorization (Bearer), valida a assinatura e repassa
  * a identidade para os serviços internos via headers X-User-*. A regra de quem pode acessar o quê
  * fica no domínio ({@link AuthorizeRequestUseCase}); aqui só se traduz o resultado para HTTP.
  */
@@ -76,12 +76,21 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         }
     }
 
-    /** O token vem do cookie HttpOnly (o front não tem acesso a ele via JavaScript). */
+    /**
+     * O token vem do header {@code Authorization: Bearer <token>}. O navegador não consegue enviar headers
+     * no WebSocket, então em /ws o token também é aceito na query string (?token=). O cookie antigo
+     * fica só como último recurso.
+     */
     private String extractToken(ServerHttpRequest req) {
+        String auth = req.getHeaders().getFirst("Authorization");
+        if (auth != null && auth.startsWith("Bearer ")) return auth.substring(7);
+        String path = req.getURI().getPath();
+        if (path.equals("/ws") || path.startsWith("/ws/")) {
+            String qs = req.getQueryParams().getFirst("token");
+            if (qs != null && !qs.isBlank()) return qs;
+        }
         HttpCookie cookie = req.getCookies().getFirst(cookieName);
         if (cookie != null && !cookie.getValue().isBlank()) return cookie.getValue();
-        String auth = req.getHeaders().getFirst("Authorization"); // útil para testar com Postman/curl
-        if (auth != null && auth.startsWith("Bearer ")) return auth.substring(7);
         return null;
     }
 

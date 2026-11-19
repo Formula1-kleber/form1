@@ -27,7 +27,7 @@ export default function App() {
   const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
 
-  // Ao abrir o site (ou dar F5), o cookie diz quem está logado.
+  // Ao abrir o site (ou dar F5), o token guardado diz quem está logado.
   useEffect(() => {
     me().then(setSession).catch(() => setSession(null)).finally(() => setChecking(false));
   }, []);
@@ -36,7 +36,7 @@ export default function App() {
   useEffect(() => setUnauthorizedHandler(() => setSession(null)), []);
 
   const logout = async () => {
-    try { await apiLogout(); } catch { /* o cookie expira sozinho de qualquer forma */ }
+    try { await apiLogout(); } catch { /* o token já foi descartado no front */ }
     setSession(null);
     navigate("/login", { replace: true });
   };

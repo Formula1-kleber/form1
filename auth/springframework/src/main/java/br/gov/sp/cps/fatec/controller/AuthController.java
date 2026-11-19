@@ -1,6 +1,5 @@
 package br.gov.sp.cps.fatec.controller;
 
-import br.gov.sp.cps.fatec.service.AuthResult;
 import br.gov.sp.cps.fatec.service.LoginUseCase;
 import br.gov.sp.cps.fatec.service.RegisterUserUseCase;
 import br.gov.sp.cps.fatec.configuration.AuthCookieFactory;
@@ -31,33 +30,27 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<SessionResponse> register(@RequestBody CredentialsRequest c) {
-        return withSessionCookie(register.execute(c.username(), c.password()));
+        return ResponseEntity.ok(SessionResponse.from(register.execute(c.username(), c.password())));
     }
 
     @PostMapping("/login")
     public ResponseEntity<SessionResponse> login(@RequestBody CredentialsRequest c) {
-        return withSessionCookie(login.execute(c.username(), c.password()));
+        return ResponseEntity.ok(SessionResponse.from(login.execute(c.username(), c.password())));
     }
 
-    /** Quem é o usuário da sessão atual (o gateway já validou o cookie e preencheu os headers X-User-*). */
+    /** Quem é o usuário da sessão atual (o gateway já validou o token do header Authorization e preencheu os headers X-User-*). */
     @GetMapping("/me")
     public SessionResponse me(@RequestHeader("X-User-Id") String userId,
                               @RequestHeader("X-User-Name") String username,
                               @RequestHeader("X-User-Role") String role) {
-        return new SessionResponse(userId, username, role);
+        return SessionResponse.identity(userId, username, role);
     }
 
-    /** Apaga o cookie de sessão. */
+    /** Logout: o front descarta o token; este endpoint também apaga um cookie antigo, se existir. */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, cookies.clear().toString())
                 .build();
-    }
-
-    private ResponseEntity<SessionResponse> withSessionCookie(AuthResult result) {
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookies.issue(result.token()).toString())
-                .body(SessionResponse.from(result));
     }
 }
