@@ -109,7 +109,7 @@ export default function Home({ session }: { session: Session | null }) {
         <p className="kicker">Fórmula 1 • Leilão ao vivo</p>
         <h2>LEILÃO <em>PIT LANE</em></h2>
         <p className="lead">Conheça o esporte mais veloz do planeta e dispute peças de corrida em leilões em tempo real.</p>
-        <p className="go" aria-hidden="true">LIGHTS OUT!</p>
+        <p className="go" aria-hidden="true">KLEBER</p>
         <div className="cta">
           <Link className="btn red big" to={auctionPath}>{auctionLabel}</Link>
           <a className="btn ghost big" href="#pilotos">Ver os pilotos</a>

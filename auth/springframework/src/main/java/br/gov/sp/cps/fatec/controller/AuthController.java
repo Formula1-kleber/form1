@@ -1,5 +1,6 @@
 package br.gov.sp.cps.fatec.controller;
 
+import br.gov.sp.cps.fatec.service.AuthResult;
 import br.gov.sp.cps.fatec.service.LoginUseCase;
 import br.gov.sp.cps.fatec.service.RegisterUserUseCase;
 import br.gov.sp.cps.fatec.configuration.AuthCookieFactory;
@@ -30,12 +31,19 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<SessionResponse> register(@RequestBody CredentialsRequest c) {
-        return ResponseEntity.ok(SessionResponse.from(register.execute(c.username(), c.password())));
+        return withCookie(register.execute(c.username(), c.password()));
     }
 
     @PostMapping("/login")
     public ResponseEntity<SessionResponse> login(@RequestBody CredentialsRequest c) {
-        return ResponseEntity.ok(SessionResponse.from(login.execute(c.username(), c.password())));
+        return withCookie(login.execute(c.username(), c.password()));
+    }
+
+    /** Devolve a sessão com o token no corpo (front envia no header Authorization) e também no cookie HttpOnly. */
+    private ResponseEntity<SessionResponse> withCookie(AuthResult r) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookies.issue(r.token()).toString())
+                .body(SessionResponse.from(r));
     }
 
     /** Quem é o usuário da sessão atual (o gateway já validou o token do header Authorization e preencheu os headers X-User-*). */
@@ -46,7 +54,7 @@ public class AuthController {
         return SessionResponse.identity(userId, username, role);
     }
 
-    /** Logout: o front descarta o token; este endpoint também apaga um cookie antigo, se existir. */
+    /** Logout: o front descarta o token e este endpoint apaga o cookie da sessão. */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         return ResponseEntity.noContent()

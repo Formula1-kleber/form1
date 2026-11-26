@@ -23,17 +23,41 @@ export const setUnauthorizedHandler = (fn: () => void) => { onUnauthorized = fn;
 
 const PUBLIC_PATHS = ["/api/auth/login", "/api/auth/register"];
 
+const RETRY_STATUS = [502, 503, 504];
+const RETRY_DELAY_MS = 5000;
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * fetch com novas tentativas. No plano grátis do Render os serviços dormem e levam cerca de 1 minuto para acordar:
+ * nesse intervalo o gateway responde 502/503/504 ou a conexão falha. Tentamos de novo a cada 5 s.
+ */
+async function fetchRetry(url: string, init: RequestInit, retries: number): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (!RETRY_STATUS.includes(res.status) || attempt >= retries) return res;
+    } catch (e) {
+      if (attempt >= retries) throw e;
+    }
+    await sleep(RETRY_DELAY_MS);
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   let res: Response;
+  // Só repete consultas (GET) e login/cadastro. Lances e demais POSTs não são repetidos, para nunca duplicar uma ação.
+  const method = (init.method ?? "GET").toUpperCase();
+  const retries = method === "GET" || PUBLIC_PATHS.includes(path) ? 8 : 0;
   try {
     const token = getToken();
-    res = await fetch(API_URL + path, {
+    res = await fetchRetry(API_URL + path, {
       ...init,
+      credentials: "include", // envia e recebe o cookie de sessão (HttpOnly) além do header Authorization
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    });
+    }, retries);
   } catch {
     throw new ApiError("Não foi possível falar com o servidor. O gateway está rodando?", "REDE", 0);
   }
